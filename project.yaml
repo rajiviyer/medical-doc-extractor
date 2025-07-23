@@ -1,0 +1,3 @@
+cursor:
+  usesRules: true
+  notes: ".cursorrules contains development guidance and architectural preferences."

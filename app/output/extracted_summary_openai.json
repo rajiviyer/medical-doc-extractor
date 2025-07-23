@@ -1,0 +1,11 @@
+```json
+{
+    "room_rent_capping": "Not Mentioned",
+    "icu_capping": "Not Mentioned",
+    "maternity_capping": "Not Mentioned",
+    "ambulance_surcharge_capping": 2000,
+    "daily_cash_benefit": 800,
+    "co_payment": "Not Mentioned",
+    "organ_donor_expenses_capping": "Not Mentioned"
+}
+```
