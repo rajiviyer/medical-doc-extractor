@@ -1,0 +1,10 @@
+{
+  "room_rent_capping": "at actuals (unless specified otherwise in the Policy Schedule / Certificate of Insurance)",
+  "icu_capping": "at actuals (unless specified otherwise in the Policy Schedule / Certificate of Insurance)",
+  "maternity_capping": "specified against this cover in the Policy Schedule / Certificate of Insurance",
+  "ambulance_surcharge_capping": "INR 2000 on a per hospitalization basis (unless specified otherwise in the Policy Schedule / Certificate of Insurance)",
+  "daily_cash_benefit": "800 per day upto15 days",
+  "co_payment": "Co-Payment as mentioned in the Policy Schedule / Certificate of Insurance will be applied on admissible claim",
+  "organ_donor_expenses_capping": "Covered Upto Sum Insured",
+  "patient_onboarding_fee": "Not Mentioned"
+}

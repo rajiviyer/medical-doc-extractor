@@ -7,13 +7,5 @@ Pillow
 python-dotenv
 openai
 mistralai
+google-genai
 # langchain_mistralai
-
-# For NER/LLM integration, uncomment as needed:
-# spacy
-# transformers
-# openai
-
-# System dependencies (install via apt, not pip):
-# - Tesseract OCR: sudo apt install tesseract-ocr
-# - Poppler for pdf2image: sudo apt install poppler-utils 

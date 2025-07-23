@@ -5,13 +5,3 @@ services:
     volumes:
       - ./docs:/docs
       - ./app/output:/app/output
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    runtime: nvidia 

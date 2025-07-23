@@ -10,6 +10,7 @@ Your task is to extract the following fields from the document text:
 - daily_cash_benefit
 - co_payment
 - organ_donor_expenses_capping
+- patient_onboarding_fee
 
 Extract only what is explicitly or clearly implied in the text. If something is not found, return "Not Mentioned".
 
