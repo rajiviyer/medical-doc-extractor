@@ -59,15 +59,12 @@ def get_mistral_policy_prompt(metadata_list_json):
     return f"""
 You are a health insurance analyst specializing in policy document analysis.
 
-You are given a list of document text segments, each with metadata about its source file, extraction method, and extraction success. 
-There are several types of documents:
+You are given a list of policy document text segments, each with metadata about its source file, extraction method, and extraction success. 
+There are two types of document:
 1. Master policy document
 2. Policy Schedule document
-3. Patient onboarding form (may contain admission date)
-4. Consultation reports (may contain admission date)
-5. Investigation reports (may contain admission date)
 
-Refer to all the documents to extract the required fields. Pay special attention to onboarding forms and consultation reports for admission dates.
+Refer to both the documents to extract the required fields.
 
 Your task is to extract information for the following fields from the policy documents and 
 based on the information, calculate or infer the capping values.
@@ -119,15 +116,12 @@ def get_gemini_policy_prompt(metadata_list_json):
     return f"""
 You are a health insurance analyst specializing in policy document analysis.
 
-You are given a list of document text segments, each with metadata about its source file, extraction method, and extraction success. 
-There are several types of documents:
+You are given a list of policy document text segments, each with metadata about its source file, extraction method, and extraction success. 
+There are two types of document:
 1. Master policy document
 2. Policy document
-3. Patient onboarding form (may contain admission date)
-4. Consultation reports (may contain admission date)
-5. Investigation reports (may contain admission date)
 
-Refer to all the documents to extract the required fields. Pay special attention to onboarding forms and consultation reports for admission dates.
+Refer to both the documents to extract the required fields.
 
 Your task is to extract information for the following fields from the policy documents and 
 based on the information, calculate or infer the capping values.

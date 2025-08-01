@@ -47,9 +47,9 @@ IMPORTANT: Return a valid JSON object with these exact field names as keys:
 - ayush_hospitalization_capping: Cap on ayush hospitalization
 - vaccination_preventive_health_check_up_capping: Cap on vaccination, preventive health check up
 - artificial_prostheses_aids_capping: Cap on artificial prostheses, aids
-- policy_start_date: Policy start date (in DD/MM/YYYY, DD/MM/YY, D/M/YY, or DD/M/YY format if found)
-- policy_end_date: Policy end date (in DD/MM/YYYY, DD/MM/YY, D/M/YY, or DD/M/YY format if found)
-- date_of_admission: Date of admission to hospital (in DD/MM/YYYY, DD/MM/YY, D/M/YY, or DD/M/YY format if found)
+- policy_start_date: Policy start date (in DD/MM/YYYY or DD/MM/YY format if found)
+- policy_end_date: Policy end date (in DD/MM/YYYY or DD/MM/YY format if found)
+- date_of_admission: Date of admission to hospital (in DD/MM/YYYY or DD/MM/YY format if found)
 
 Here is the list of policy document segments (as JSON):
 {metadata_list_json}
@@ -59,15 +59,12 @@ def get_mistral_policy_prompt(metadata_list_json):
     return f"""
 You are a health insurance analyst specializing in policy document analysis.
 
-You are given a list of document text segments, each with metadata about its source file, extraction method, and extraction success. 
-There are several types of documents:
+You are given a list of policy document text segments, each with metadata about its source file, extraction method, and extraction success. 
+There are two types of document:
 1. Master policy document
 2. Policy Schedule document
-3. Patient onboarding form (may contain admission date)
-4. Consultation reports (may contain admission date)
-5. Investigation reports (may contain admission date)
 
-Refer to all the documents to extract the required fields. Pay special attention to onboarding forms and consultation reports for admission dates.
+Refer to both the documents to extract the required fields.
 
 Your task is to extract information for the following fields from the policy documents and 
 based on the information, calculate or infer the capping values.
@@ -107,9 +104,9 @@ IMPORTANT: Return a valid JSON object with these exact field names as keys:
 - ayush_hospitalization_capping: Cap on ayush hospitalization
 - vaccination_preventive_health_check_up_capping: Cap on vaccination, preventive health check up
 - artificial_prostheses_aids_capping: Cap on artificial prostheses, aids
-- policy_start_date: Policy start date (in DD/MM/YYYY, DD/MM/YY, D/M/YY, or DD/M/YY format if found)
-- policy_end_date: Policy end date (in DD/MM/YYYY, DD/MM/YY, D/M/YY, or DD/M/YY format if found)
-- date_of_admission: Date of admission to hospital (in DD/MM/YYYY, DD/MM/YY, D/M/YY, or DD/M/YY format if found)
+- policy_start_date: Policy start date (in DD/MM/YYYY or DD/MM/YY format if found)
+- policy_end_date: Policy end date (in DD/MM/YYYY or DD/MM/YY format if found)
+- date_of_admission: Date of admission to hospital (in DD/MM/YYYY or DD/MM/YY format if found)
 
 Here is the list of policy document segments (as JSON):
 {metadata_list_json}
@@ -119,15 +116,12 @@ def get_gemini_policy_prompt(metadata_list_json):
     return f"""
 You are a health insurance analyst specializing in policy document analysis.
 
-You are given a list of document text segments, each with metadata about its source file, extraction method, and extraction success. 
-There are several types of documents:
+You are given a list of policy document text segments, each with metadata about its source file, extraction method, and extraction success. 
+There are two types of document:
 1. Master policy document
 2. Policy document
-3. Patient onboarding form (may contain admission date)
-4. Consultation reports (may contain admission date)
-5. Investigation reports (may contain admission date)
 
-Refer to all the documents to extract the required fields. Pay special attention to onboarding forms and consultation reports for admission dates.
+Refer to both the documents to extract the required fields.
 
 Your task is to extract information for the following fields from the policy documents and 
 based on the information, calculate or infer the capping values.
@@ -170,9 +164,9 @@ IMPORTANT: Return a valid JSON object matching the ExtractedFields schema with t
 - ayush_hospitalization_capping: Cap on ayush hospitalization
 - vaccination_preventive_health_check_up_capping: Cap on vaccination, preventive health check up
 - artificial_prostheses_aids_capping: Cap on artificial prostheses, aids
-- policy_start_date: Policy start date (in DD/MM/YYYY, DD/MM/YY, D/M/YY, or DD/M/YY format if found)
-- policy_end_date: Policy end date (in DD/MM/YYYY, DD/MM/YY, D/M/YY, or DD/M/YY format if found)
-- date_of_admission: Date of admission to hospital (in DD/MM/YYYY, DD/MM/YY, D/M/YY, or DD/M/YY format if found)
+- policy_start_date: Policy start date (in DD/MM/YYYY or DD/MM/YY format if found)
+- policy_end_date: Policy end date (in DD/MM/YYYY or DD/MM/YY format if found)
+- date_of_admission: Date of admission to hospital (in DD/MM/YYYY or DD/MM/YY format if found)
 
 Here is the list of policy document segments (as JSON):
 {metadata_list_json}

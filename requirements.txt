@@ -8,4 +8,5 @@ python-dotenv
 openai
 mistralai
 google-genai
+pyyaml
 # langchain_mistralai

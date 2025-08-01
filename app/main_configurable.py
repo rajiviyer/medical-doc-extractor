@@ -2,9 +2,8 @@ import sys
 import os
 import json
 import logging
-import re
 from pathlib import Path
-from loader import extract_single_file_with_metadata, extract_policy_docs_with_metadata, extract_all_relevant_docs_with_metadata
+from loader import extract_single_file_with_metadata, extract_policy_docs_with_metadata
 from prompts import get_openai_policy_prompt, get_mistral_policy_prompt, get_gemini_policy_prompt
 from openai_extract import extract_fields_with_openai
 from mistral_extract import extract_fields_with_mistral
@@ -14,49 +13,11 @@ from policy_rules import validate_policy_rules
 from accuracy_metrics import AccuracyTracker
 from policy_classifier import classify_policy_document, PolicyType, DocumentCategory
 from policy_report_generator import generate_policy_rule_report
-from llm_config import get_enabled_llm_providers, is_llm_enabled, print_llm_configuration, validate_llm_configuration, LLMProvider
+from llm_config import get_enabled_llm_providers, is_llm_enabled, print_llm_configuration, validate_llm_configuration
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-def is_valid_result(result_json):
-    """Safely check if a result is valid for processing."""
-    if result_json is None:
-        return False
-    elif isinstance(result_json, dict):
-        return True
-    elif isinstance(result_json, str):
-        return bool(result_json.strip())
-    return False
-
-def extract_admission_date_from_text(metadata_list):
-    """Extract admission date from document text as fallback when LLM fails."""
-    admission_patterns = [
-        r'Date of Admission\s+(\d{1,2}/\d{1,2}/\d{4})',
-        r'Date of Admission\s+(\d{1,2}/\d{1,2}/\d{2})',
-        r'Admission Date\s*:\s*(\d{1,2}/\d{1,2}/\d{4})',
-        r'Admission Date\s*:\s*(\d{1,2}/\d{1,2}/\d{2})',
-        r'Admitted on\s+(\d{1,2}/\d{1,2}/\d{4})',
-        r'Admitted on\s+(\d{1,2}/\d{1,2}/\d{2})'
-    ]
-    
-    for metadata in metadata_list:
-        if metadata.text:
-            for pattern in admission_patterns:
-                match = re.search(pattern, metadata.text, re.IGNORECASE)
-                if match:
-                    date_str = match.group(1)
-                    # Convert 2-digit year to 4-digit year if needed
-                    if len(date_str.split('/')[-1]) == 2:
-                        year = int(date_str.split('/')[-1])
-                        if year < 50:  # Assume 20xx for years < 50
-                            year += 2000
-                        else:
-                            year += 1900
-                        date_str = f"{date_str.split('/')[0]}/{date_str.split('/')[1]}/{year:04d}"
-                    return date_str
-    return None
 
 def process_single_file(file_path):
     """Process a single file for policy extraction using configurable LLM selection."""
@@ -71,35 +32,54 @@ def process_single_file(file_path):
         return
     
     try:
-        metadata_list = extract_all_relevant_docs_with_metadata(file_path, file_path)
-        if not metadata_list:
-            raise Exception("No relevant documents found in the specified file.")
+        # Step 1: Extract metadata from file
+        metadata_entry = extract_single_file_with_metadata(file_path)
+        if not metadata_entry:
+            raise Exception("Failed to extract metadata from the file.")
         
-        # Step 1: Classify the document
+        if not metadata_entry['extraction_success']:
+            raise Exception(f"Text extraction failed: {metadata_entry['error']}")
+        
+        # Step 2: Classify the document
         logger.info("Classifying document...")
-        classification_result = classify_policy_document(file_path, metadata_list[0])
-        logger.info(f"  {os.path.basename(file_path)}: {classification_result.document_type.value} (confidence: {classification_result.confidence_score:.2f})")
+        classification_result = classify_policy_document(
+            filename=os.path.basename(file_path),
+            content=metadata_entry.get('text', ''),
+            metadata=metadata_entry
+        )
         
-        # Step 2: Extract policy information using LLMs
-        logger.info("Policy documents loaded. Beginning extraction...")
+        logger.info(f"Document classified as: {classification_result.document_type.value}")
+        logger.info(f"Confidence: {classification_result.confidence_score:.2f}")
+        logger.info(f"Category: {classification_result.category.value}")
+        
+        # Step 3: Route to appropriate processor based on classification
+        if classification_result.document_type in [PolicyType.HEALTH_INSURANCE, PolicyType.MASTER_POLICY]:
+            logger.info("Using health insurance extraction pipeline")
+        elif classification_result.document_type == PolicyType.LIFE_INSURANCE:
+            logger.info("Using life insurance extraction pipeline")
+        elif classification_result.document_type in [PolicyType.CLAIM_DOCUMENT, PolicyType.HOSPITAL_BILL]:
+            logger.info("Using claim processing pipeline")
+        elif classification_result.document_type == PolicyType.MEDICAL_REPORT:
+            logger.info("Using medical document processing pipeline")
+        else:
+            logger.info("Using general processing pipeline")
+        
+        metadata_list = [metadata_entry]
+        metadata_json = json.dumps(metadata_list, indent=2, ensure_ascii=False)
+        file_name = os.path.splitext(os.path.basename(file_path))[0]
+        
+        # Extract fields using enabled LLMs only
         extraction_results = {}
         
-        # Get enabled LLM providers
-        enabled_providers = get_enabled_llm_providers()
-        
-        # Prepare metadata for LLM
-        metadata_json = json.dumps([metadata.__dict__ for metadata in metadata_list], indent=2)
-        
-        # Extract with enabled LLMs
-        if LLMProvider.OPENAI in enabled_providers:
+        if is_llm_enabled('openai'):
             logger.info("Extracting with OpenAI...")
             extraction_results['openai'] = extract_fields_with_openai(get_openai_policy_prompt(metadata_json))
         
-        if LLMProvider.MISTRAL in enabled_providers:
+        if is_llm_enabled('mistral'):
             logger.info("Extracting with Mistral...")
             extraction_results['mistral'] = extract_fields_with_mistral(get_mistral_policy_prompt(metadata_json))
         
-        if LLMProvider.GEMINI in enabled_providers:
+        if is_llm_enabled('gemini'):
             logger.info("Extracting with Gemini...")
             extraction_results['gemini'] = extract_fields_with_gemini(get_gemini_policy_prompt(metadata_json))
         
@@ -115,7 +95,7 @@ def process_single_file(file_path):
         
         for model, result_json in extraction_results.items():
             try:
-                if is_valid_result(result_json):
+                if result_json and result_json.strip():
                     # Try to parse JSON if it's a string
                     if isinstance(result_json, str):
                         try:
@@ -159,17 +139,13 @@ def process_single_file(file_path):
         
         for model, result_json in extraction_results.items():
             try:
-                if is_valid_result(result_json):
+                if result_json and result_json.strip():
                     # Parse the result data
                     result_data = json.loads(result_json) if isinstance(result_json, str) else result_json
                     
                     # Create sample claim data for testing (in real scenario, this would come from claim documents)
-                    # Use extracted admission date if available, otherwise use default
-                    extracted_admission_date = result_data.get('date_of_admission')
-                    if extracted_admission_date == "null" or not extracted_admission_date:
-                        extracted_admission_date = "15/07/2025"  # Use known correct date
                     sample_claim_data = {
-                        "admission_date": extracted_admission_date,
+                        "admission_date": "2024-01-15",
                         "claim_amount": 50000,
                         "condition": "cardiac",
                         "hospital_bill": {
@@ -217,14 +193,14 @@ def process_single_file(file_path):
             try:
                 # Generate markdown report
                 report_content = generate_policy_rule_report(rule_report, format_type="markdown")
-                report_file = f"output/policy_rule_report_{model}_{file_path}.md"
+                report_file = f"output/policy_rule_report_{model}_{file_name}.md"
                 os.makedirs("output", exist_ok=True)
                 with open(report_file, 'w', encoding='utf-8') as f:
                     f.write(report_content)
                 print(f"✅ Policy rule report saved to {report_file}")
                 
                 # Also save as HTML for better viewing
-                html_report_file = f"output/policy_rule_report_{model}_{file_path}.html"
+                html_report_file = f"output/policy_rule_report_{model}_{file_name}.html"
                 generate_policy_rule_report(rule_report, html_report_file, format_type="html")
                 print(f"✅ HTML policy rule report saved to {html_report_file}")
                 
@@ -244,11 +220,8 @@ def process_single_file(file_path):
                     # Prepare model results for accuracy analysis
                     model_results = {}
                     for model, result_json in extraction_results.items():
-                        if is_valid_result(result_json):
-                            if isinstance(result_json, str):
-                                result_data = json.loads(result_json)
-                            else:
-                                result_data = result_json
+                        if result_json and result_json.strip():
+                            result_data = json.loads(result_json) if isinstance(result_json, str) else result_json
                             model_results[model] = {
                                 **result_data,
                                 "processing_time": 30.0  # Estimated processing time
@@ -258,12 +231,12 @@ def process_single_file(file_path):
                     accuracy_report = tracker.compare_models(
                         model_results, 
                         ground_truth_data.get("ground_truth_values", {}),
-                        f"policy_extraction_{file_path}"
+                        f"policy_extraction_{file_name}"
                     )
                     
                     # Save accuracy report
                     os.makedirs("output", exist_ok=True)
-                    tracker.save_accuracy_report(accuracy_report, f"output/accuracy_report_{file_path}.json")
+                    tracker.save_accuracy_report(accuracy_report, f"output/accuracy_report_{file_name}.json")
                     
                     # Print accuracy summary
                     print("\n📊 Accuracy Analysis:")
@@ -274,7 +247,7 @@ def process_single_file(file_path):
                     if accuracy_report.recommendations:
                         print(f"  Recommendations: {', '.join(accuracy_report.recommendations[:3])}")
                     
-                    logger.info(f"Accuracy report saved to output/accuracy_report_{file_path}.json")
+                    logger.info(f"Accuracy report saved to output/accuracy_report_{file_name}.json")
                 else:
                     logger.warning("No ground truth data available for accuracy analysis")
             else:
@@ -389,7 +362,7 @@ def process_directory(patient_dir):
         
         for model, result_json in extraction_results.items():
             try:
-                if is_valid_result(result_json):
+                if result_json and result_json.strip():
                     # Try to parse JSON if it's a string
                     if isinstance(result_json, str):
                         try:
@@ -418,38 +391,8 @@ def process_directory(patient_dir):
             if model in validation_results:
                 validation_dict = validation_results[model].to_dict()
             
-            # Parse the extraction result to store as proper JSON object
-            if isinstance(result_json, str):
-                try:
-                    extraction_data = json.loads(result_json)
-                    logger.info(f"Successfully parsed {model} response as JSON")
-                except json.JSONDecodeError as e:
-                    logger.error(f"Failed to parse {model} response as JSON: {e}")
-                    logger.error(f"Raw response: {result_json[:200]}...")
-                    # Try to clean up the response and parse again
-                    cleaned_response = result_json.strip()
-                    if cleaned_response.startswith("```json"):
-                        json_start = cleaned_response.find("```json") + 7
-                        json_end = cleaned_response.rfind("```")
-                        if json_end > json_start:
-                            cleaned_response = cleaned_response[json_start:json_end].strip()
-                    elif cleaned_response.startswith("```"):
-                        json_start = cleaned_response.find("```") + 3
-                        json_end = cleaned_response.rfind("```")
-                        if json_end > json_start:
-                            cleaned_response = cleaned_response[json_start:json_end].strip()
-                    
-                    try:
-                        extraction_data = json.loads(cleaned_response)
-                        logger.info(f"Successfully parsed {model} response after cleanup")
-                    except json.JSONDecodeError:
-                        extraction_data = result_json  # Keep as string if parsing fails
-            else:
-                extraction_data = result_json
-                logger.info(f"{model} response is already a parsed object")
-            
             output_data = {
-                "extraction": extraction_data,
+                "extraction": result_json,
                 "validation": validation_dict
             }
             
@@ -463,17 +406,13 @@ def process_directory(patient_dir):
         
         for model, result_json in extraction_results.items():
             try:
-                if is_valid_result(result_json):
+                if result_json and result_json.strip():
                     # Parse the result data
                     result_data = json.loads(result_json) if isinstance(result_json, str) else result_json
                     
                     # Create sample claim data for testing (in real scenario, this would come from claim documents)
-                    # Use extracted admission date if available, otherwise use default
-                    extracted_admission_date = result_data.get('date_of_admission')
-                    if extracted_admission_date == "null" or not extracted_admission_date:
-                        extracted_admission_date = "15/07/2025"  # Use known correct date
                     sample_claim_data = {
-                        "admission_date": extracted_admission_date,
+                        "admission_date": "2024-01-15",
                         "claim_amount": 50000,
                         "condition": "cardiac",
                         "hospital_bill": {
@@ -551,7 +490,7 @@ def process_directory(patient_dir):
                     # Prepare model results for accuracy analysis
                     model_results = {}
                     for model, result_json in extraction_results.items():
-                        if is_valid_result(result_json):
+                        if result_json and result_json.strip():
                             result_data = json.loads(result_json) if isinstance(result_json, str) else result_json
                             model_results[model] = {
                                 **result_data,
