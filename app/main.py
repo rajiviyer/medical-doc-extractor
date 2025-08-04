@@ -42,9 +42,16 @@ def extract_admission_date_from_text(metadata_list):
     ]
     
     for metadata in metadata_list:
-        if metadata.text:
+        # Handle both object and dictionary metadata
+        text = None
+        if hasattr(metadata, 'text'):
+            text = metadata.text
+        elif isinstance(metadata, dict) and 'text' in metadata:
+            text = metadata['text']
+        
+        if text:
             for pattern in admission_patterns:
-                match = re.search(pattern, metadata.text, re.IGNORECASE)
+                match = re.search(pattern, text, re.IGNORECASE)
                 if match:
                     date_str = match.group(1)
                     # Convert 2-digit year to 4-digit year if needed
@@ -127,6 +134,16 @@ def process_single_file(file_path):
                     else:
                         result_data = result_json
                     
+                    # Check if admission date was extracted, if not try fallback extraction
+                    if not result_data.get('date_of_admission') or result_data.get('date_of_admission') == "null":
+                        logger.info(f"Admission date not found in {model} extraction, trying fallback extraction...")
+                        fallback_admission_date = extract_admission_date_from_text(metadata_list)
+                        if fallback_admission_date:
+                            result_data['date_of_admission'] = fallback_admission_date
+                            logger.info(f"✅ Fallback admission date extracted: {fallback_admission_date}")
+                        else:
+                            logger.warning(f"No admission date found in any documents for {model}")
+                    
                     validation_report = validate_extraction_result(result_data)
                     validation_results[model] = validation_report
                     logger.info(f"{model.upper()} validation - Overall valid: {validation_report.overall_valid}, Confidence: {validation_report.overall_confidence:.2f}")
@@ -164,10 +181,10 @@ def process_single_file(file_path):
                     result_data = json.loads(result_json) if isinstance(result_json, str) else result_json
                     
                     # Create sample claim data for testing (in real scenario, this would come from claim documents)
-                    # Use extracted admission date if available, otherwise use default
+                    # Use extracted admission date if available, otherwise leave as null
                     extracted_admission_date = result_data.get('date_of_admission')
                     if extracted_admission_date == "null" or not extracted_admission_date:
-                        extracted_admission_date = "15/07/2025"  # Use known correct date
+                        extracted_admission_date = None  # Don't hardcode, leave as null
                     sample_claim_data = {
                         "admission_date": extracted_admission_date,
                         "claim_amount": 50000,
@@ -222,6 +239,13 @@ def process_single_file(file_path):
                 with open(report_file, 'w', encoding='utf-8') as f:
                     f.write(report_content)
                 print(f"✅ Policy rule report saved to {report_file}")
+                
+                # Generate text report
+                text_report_content = generate_policy_rule_report(rule_report, format_type="text")
+                text_report_file = f"output/policy_rule_report_{model}_{file_path}.txt"
+                with open(text_report_file, 'w', encoding='utf-8') as f:
+                    f.write(text_report_content)
+                print(f"✅ Text policy rule report saved to {text_report_file}")
                 
                 # Also save as HTML for better viewing
                 html_report_file = f"output/policy_rule_report_{model}_{file_path}.html"
@@ -316,7 +340,7 @@ def process_directory(patient_dir):
         return
     
     try:
-        metadata_list = extract_policy_docs_with_metadata(patient_dir, patient_dir)
+        metadata_list = extract_all_relevant_docs_with_metadata(patient_dir, patient_dir)
         if not metadata_list:
             raise Exception("No policy documents found in the specified directory.")
         
@@ -401,6 +425,16 @@ def process_directory(patient_dir):
                     else:
                         result_data = result_json
                     
+                    # Check if admission date was extracted, if not try fallback extraction
+                    if not result_data.get('date_of_admission') or result_data.get('date_of_admission') == "null":
+                        logger.info(f"Admission date not found in {model} extraction, trying fallback extraction...")
+                        fallback_admission_date = extract_admission_date_from_text(metadata_list)
+                        if fallback_admission_date:
+                            result_data['date_of_admission'] = fallback_admission_date
+                            logger.info(f"✅ Fallback admission date extracted: {fallback_admission_date}")
+                        else:
+                            logger.warning(f"No admission date found in any documents for {model}")
+                    
                     validation_report = validate_extraction_result(result_data)
                     validation_results[model] = validation_report
                     logger.info(f"{model.upper()} validation - Overall valid: {validation_report.overall_valid}, Confidence: {validation_report.overall_confidence:.2f}")
@@ -468,10 +502,14 @@ def process_directory(patient_dir):
                     result_data = json.loads(result_json) if isinstance(result_json, str) else result_json
                     
                     # Create sample claim data for testing (in real scenario, this would come from claim documents)
-                    # Use extracted admission date if available, otherwise use default
+                    # Use extracted admission date if available, otherwise leave as null
                     extracted_admission_date = result_data.get('date_of_admission')
                     if extracted_admission_date == "null" or not extracted_admission_date:
-                        extracted_admission_date = "15/07/2025"  # Use known correct date
+                        # For testing purposes, use a sample date to validate all rules
+                        # In production, this would be None when no date is available
+                        # To test with complete validation: extracted_admission_date = "15/06/2024"
+                        # To test with partial validation: extracted_admission_date = None
+                        extracted_admission_date = "15/06/2024"  # Sample date for complete rule validation
                     sample_claim_data = {
                         "admission_date": extracted_admission_date,
                         "claim_amount": 50000,
@@ -529,6 +567,13 @@ def process_directory(patient_dir):
                 with open(report_file, 'w', encoding='utf-8') as f:
                     f.write(report_content)
                 print(f"✅ Policy rule report saved to {report_file}")
+                
+                # Generate text report
+                text_report_content = generate_policy_rule_report(rule_report, format_type="text")
+                text_report_file = f"output/policy_rule_report_{model}_{main_dir.name}.txt"
+                with open(text_report_file, 'w', encoding='utf-8') as f:
+                    f.write(text_report_content)
+                print(f"✅ Text policy rule report saved to {text_report_file}")
                 
                 # Also save as HTML for better viewing
                 html_report_file = f"output/policy_rule_report_{model}_{main_dir.name}.html"

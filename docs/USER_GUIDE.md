@@ -6,7 +6,9 @@ This guide provides comprehensive instructions for setting up, running, and usin
 
 1. [Prerequisites](#prerequisites)
 2. [Quick Start](#quick-start)
-3. [Docker Setup](#docker-setup)
+3. [Setup Options](#setup-options)
+   - [Docker Setup](#docker-setup)
+   - [Python Setup](#python-setup)
 4. [Application Usage](#application-usage)
 5. [Configuration](#configuration)
 6. [Output Files](#output-files)
@@ -16,12 +18,13 @@ This guide provides comprehensive instructions for setting up, running, and usin
 ## Prerequisites
 
 ### System Requirements
-- **Operating System**: Linux, macOS, or Windows with Docker support
-- **Docker**: Version 20.10 or higher
-- **Docker Compose**: Version 2.0 or higher
+- **Operating System**: Linux, macOS, or Windows
+- **Python**: Version 3.8 or higher (for Python setup)
+- **Docker**: Version 20.10 or higher (for Docker setup)
+- **Docker Compose**: Version 2.0 or higher (for Docker setup)
 - **Memory**: Minimum 4GB RAM (8GB recommended)
 - **Storage**: At least 2GB free space
-- **Internet**: Required for downloading Docker images and API calls
+- **Internet**: Required for downloading dependencies and API calls
 
 ### API Keys Required
 You'll need API keys for the LLM services:
@@ -67,14 +70,17 @@ data/
 ├── Master Policies/
 │   ├── master policy-care classic mediclaim policy.pdf
 │   └── Master policy-care-supreme---policy-terms-&-conditions.pdf
-├── Daxa ben Initial/
-│   ├── master policy.pdf
-│   └── policy schedule.pdf
+├── Dashrath Patel initial/
+│   ├── dashrath patel onboarding.pdf
+│   ├── dashrath patel policy.pdf
+│   └── MASTER POLICY-HDFC GROUP HEALTH.pdf
 └── Other Directories/
     └── policy documents...
 ```
 
 ### 4. Run the Application
+
+#### **Option A: Using Docker (Recommended)**
 ```bash
 # Start the application (default: processes single policy file)
 ./start-docker.sh --main --build
@@ -86,94 +92,28 @@ data/
 docker-compose --profile main up -d --build
 ```
 
-## Features
+#### **Option B: Using Python/uv**
+```bash
+# Install dependencies
+uv sync
 
-The Medical Document Extractor provides the following key features:
+# Activate virtual environment
+uv shell
 
-### 1. **Document Processing**
-- **PDF Processing**: Extract text from digital and scanned PDFs
-- **Image Processing**: OCR support for image files
-- **Multi-format Support**: Handle various document formats
-- **Recursive Processing**: Process subdirectories automatically
+# Run the application
+python app/main.py --dir "data/Dashrath Patel initial"
+```
 
-### 2. **Document Classification**
-- **8 Document Types**: Health insurance, life insurance, master policy, policy schedule, endorsement, claim document, medical report, hospital bill
-- **Policy Number Extraction**: Automatic detection of policy numbers and versions
-- **Processor Routing**: Intelligent routing to appropriate processing pipelines
-- **Multi-Method Analysis**: Filename patterns, content keywords, metadata analysis
-- **Policy Number Extraction**: Automatic extraction of policy numbers
-- **Version Detection**: Identify policy versions and dates
-- **Processor Routing**: Route documents to appropriate processing pipelines
+## Setup Options
 
-### 3. **Policy Document Extraction**
-- **Policy Filtering**: Automatically identify policy documents
-- **Field Extraction**: Extract 29 policy capping fields
-- **Multi-LLM Support**: Use OpenAI, Mistral, and Gemini models
-- **Structured Output**: Generate validated JSON results
+### Docker Setup
 
-### 4. **Enhanced Document Processing (Latest)**
-- **Comprehensive Document Types**: Process policy documents, onboarding forms, consultation reports, investigation reports
-- **Admission Date Extraction**: Extract admission dates from patient onboarding forms
-- **Policy Date Extraction**: Extract policy start and end dates from policy documents
-- **Multi-Document Analysis**: Analyze all relevant documents in a patient directory
-- **Enhanced File Filtering**: Include files with keywords: policy, onboarding, admission, consultation, investigation
+#### Starting Docker Services
 
-### 5. **Date Format Support**
-- **Multiple Date Formats**: Support for DD/MM/YYYY, DD/MM/YY, D/M/YY, DD/M/YY formats
-- **Single-Digit Support**: Handle dates like 7/5/25 (7th May 2025) and 17/2/25 (17th Feb 2025)
-- **Comprehensive Validation**: Regex patterns for all supported date formats
-- **Flexible Parsing**: Automatic detection and validation of various date patterns
-
-### 6. **Data Validation**
-- **Range Validation**: Check numerical values within expected ranges
-- **Format Validation**: Validate percentage and currency formats
-- **Cross-field Checks**: Ensure logical consistency across fields
-- **Confidence Scoring**: Provide confidence scores (0.0-1.0)
-- **Recommendations**: Generate improvement suggestions
-
-### 7. **Policy Rule Validation**
-- **11 Business Rules**: Comprehensive claims processing rules organized in 3 sections
-- **Policy Validity Section**: Check inception date and lapse status (2 rules)
-- **Policy Limits Section**: Validate room rent, ICU, co-payment, sub-limits, daycare (5 rules)
-- **Waiting Periods Section**: Check initial, disease-specific, maternity, non-medical periods (4 rules)
-- **Risk Assessment**: Classify risk levels (Low, Medium, High)
-- **Deduction Calculation**: Automatic deduction calculations
-- **Early Termination**: Stop processing if critical rules fail
-
-### 8. **Accuracy Metrics**
-- **Field-Level Accuracy**: Track accuracy for each of 29 fields
-- **Model Comparison**: Compare OpenAI, Mistral, and Gemini performance
-- **Confidence Distribution**: Analyze confidence score patterns
-- **Error Classification**: Categorize extraction errors
-- **Similarity Scoring**: Compare against ground truth data
-- **Recommendations**: Generate improvement recommendations
-
-### 9. **Tabular Report Generation**
-- **Multiple Formats**: Markdown, HTML, and ASCII table outputs
-- **Color-Coded Status**: Green for PASS, red for FAIL with deductions
-- **Comprehensive Coverage**: All 11 policy rules across 3 sections
-- **Summary Statistics**: Overall validity, risk level, total deductions
-- **Professional Formatting**: Ready for documentation and reporting
-- **Correct Section Mapping**: Rules properly categorized by section
-
-### 10. **Complete Policy Rules System (Latest)**
-- **3 Policy Sections**: Policy Validity, Policy Limits, Waiting Periods
-- **11 Total Rules**: Comprehensive business logic coverage
-- **Section-Specific Logic**: Each section has distinct validation criteria
-- **Early Termination**: Critical failures stop processing immediately
-- **Detailed Reporting**: Section-corrected validation reports
-
-## Docker Setup
-
-### Starting Docker Services
-
-#### Option 1: Using Start Script (Recommended)
+##### Option 1: Using Start Script (Recommended)
 ```bash
 # Start main application service
 ./start-docker.sh --main --build
-
-# Start test environment
-./start-docker.sh --test
 
 # Start interactive development
 ./start-docker.sh --interactive
@@ -182,7 +122,7 @@ The Medical Document Extractor provides the following key features:
 ./start-docker.sh --help
 ```
 
-#### Option 2: Using Restart Script
+##### Option 2: Using Restart Script
 ```bash
 # Restart with build
 ./restart-docker.sh --build
@@ -194,7 +134,7 @@ The Medical Document Extractor provides the following key features:
 ./restart-docker.sh --help
 ```
 
-#### Option 3: Using Docker Compose Directly
+##### Option 3: Using Docker Compose Directly
 ```bash
 # Build and start the application
 docker-compose --profile main up --build
@@ -206,13 +146,7 @@ docker-compose --profile main up -d --build
 docker-compose --profile main logs -f
 ```
 
-#### Option 2: Using CPU-Specific Configuration
-```bash
-# Use CPU-only configuration
-docker-compose -f docker-compose.cpu.yml up --build
-```
-
-### Stopping Docker Services
+#### Stopping Docker Services
 ```bash
 # Stop and remove containers
 docker-compose down
@@ -224,7 +158,7 @@ docker-compose down -v
 docker-compose down --rmi all
 ```
 
-### Docker Management Commands
+#### Docker Management Commands
 ```bash
 # Check running containers
 docker ps
@@ -245,31 +179,182 @@ docker-compose --profile main build --no-cache
 ./start-docker.sh --help
 ```
 
+### Python Setup
+
+#### Using uv (Recommended)
+
+##### 1. Install uv
+```bash
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or using pip
+pip install uv
+```
+
+##### 2. Initialize Project
+```bash
+# Initialize uv project
+uv init
+
+# Install dependencies
+uv sync
+```
+
+##### 3. Activate Environment
+```bash
+# Activate virtual environment
+uv shell
+
+# Or run commands directly with uv
+uv run python app/main.py --dir "data/Dashrath Patel initial"
+```
+
+#### Using pip
+
+##### 1. Create Virtual Environment
+```bash
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment
+source .venv/bin/activate  # Linux/macOS
+# or
+.venv\Scripts\activate     # Windows
+```
+
+##### 2. Install Dependencies
+```bash
+# Install from requirements.txt
+pip install -r requirements.txt
+```
+
+##### 3. Run Application
+```bash
+# Run the application
+python app/main.py --dir "data/Dashrath Patel initial"
+```
+
+## Features
+
+The Medical Document Extractor provides the following key features:
+
+### 1. **Enhanced Document Processing (Latest)**
+- **Comprehensive Document Types**: Process policy documents, onboarding forms, consultation reports, investigation reports
+- **Admission Date Extraction**: Extract admission dates from patient onboarding forms
+- **Policy Date Extraction**: Extract policy start and end dates from policy documents
+- **Multi-Document Analysis**: Analyze all relevant documents in a patient directory
+- **Enhanced File Filtering**: Include files with keywords: policy, onboarding, admission, consultation, investigation
+
+### 2. **Document Classification**
+- **8 Document Types**: Health insurance, life insurance, master policy, policy schedule, endorsement, claim document, medical report, hospital bill
+- **Policy Number Extraction**: Automatic detection of policy numbers and versions
+- **Processor Routing**: Intelligent routing to appropriate processing pipelines
+- **Multi-Method Analysis**: Filename patterns, content keywords, metadata analysis
+
+### 3. **Policy Document Extraction**
+- **Policy Filtering**: Automatically identify policy documents
+- **Field Extraction**: Extract 29 policy capping fields + 3 date fields
+- **Multi-LLM Support**: Use OpenAI, Mistral, and Gemini models
+- **Structured Output**: Generate validated JSON results
+
+### 4. **Date Format Support (Latest)**
+- **Multiple Date Formats**: Support for DD/MM/YYYY, DD/MM/YY, D/M/YY, DD/M/YY formats
+- **Single-Digit Support**: Handle dates like 7/5/25 (7th May 2025) and 17/2/25 (17th Feb 2025)
+- **Comprehensive Validation**: Regex patterns for all supported date formats
+- **Flexible Parsing**: Automatic detection and validation of various date patterns
+
+### 5. **Data Validation**
+- **Range Validation**: Check numerical values within expected ranges
+- **Format Validation**: Validate percentage and currency formats
+- **Cross-field Checks**: Ensure logical consistency across fields
+- **Confidence Scoring**: Provide confidence scores (0.0-1.0)
+- **Recommendations**: Generate improvement suggestions
+
+### 6. **Complete Policy Rules System (Latest)**
+- **11 Business Rules**: Comprehensive claims processing rules organized in 3 sections
+- **Policy Validity Section**: Check inception date and lapse status (2 rules)
+- **Policy Limits Section**: Validate room rent, ICU, co-payment, sub-limits, daycare (5 rules)
+- **Waiting Periods Section**: Check initial, disease-specific, maternity, non-medical periods (4 rules)
+- **Risk Assessment**: Classify risk levels (Low, Medium, High)
+- **Deduction Calculation**: Automatic deduction calculations
+- **Early Termination**: Stop processing if critical rules fail
+
+### 7. **Accuracy Metrics**
+- **Field-Level Accuracy**: Track accuracy for each of 29 fields
+- **Model Comparison**: Compare OpenAI, Mistral, and Gemini performance
+- **Confidence Distribution**: Analyze confidence score patterns
+- **Error Classification**: Categorize extraction errors
+- **Similarity Scoring**: Compare against ground truth data
+- **Recommendations**: Generate improvement recommendations
+
+### 8. **Tabular Report Generation**
+- **Multiple Formats**: Markdown, HTML, and ASCII table outputs
+- **Color-Coded Status**: Green for PASS, red for FAIL with deductions
+- **Comprehensive Coverage**: All 11 policy rules across 3 sections
+- **Summary Statistics**: Overall validity, risk level, total deductions
+- **Professional Formatting**: Ready for documentation and reporting
+
 ## Application Usage
 
 ### Command Line Interface
 
 The application supports multiple modes of operation:
 
-#### 1. Default Mode (Single File Processing)
+#### **Docker Commands**
+
+##### 1. Default Mode (Single File Processing)
 ```bash
 # No arguments - processes default policy file
 docker-compose --profile main run --rm medical-rag-pipeline python app/main.py
 ```
 
-#### 2. Single File Processing
+##### 2. Single File Processing
 ```bash
 # Process a specific policy file
 docker-compose --profile main run --rm medical-rag-pipeline python app/main.py --file "data/Master Policies/master policy-care classic mediclaim policy.pdf"
 ```
 
-#### 3. Directory Processing
+##### 3. Directory Processing
 ```bash
 # Process all policy documents in a directory
-docker-compose --profile main run --rm medical-rag-pipeline python app/main.py --dir "data/Daxa ben Initial"
+docker-compose --profile main run --rm medical-rag-pipeline python app/main.py --dir "data/Dashrath Patel initial"
 
 # Legacy mode (directory path as argument)
-docker-compose --profile main run --rm medical-rag-pipeline python app/main.py "data/Daxa ben Initial"
+docker-compose --profile main run --rm medical-rag-pipeline python app/main.py "data/Dashrath Patel initial"
+```
+
+#### **Python Commands**
+
+##### 1. Default Mode (Single File Processing)
+```bash
+# No arguments - processes default policy file
+python app/main.py
+```
+
+##### 2. Single File Processing
+```bash
+# Process a specific policy file
+python app/main.py --file "data/Master Policies/master policy-care classic mediclaim policy.pdf"
+```
+
+##### 3. Directory Processing
+```bash
+# Process all policy documents in a directory
+python app/main.py --dir "data/Dashrath Patel initial"
+
+# Legacy mode (directory path as argument)
+python app/main.py "data/Dashrath Patel initial"
+```
+
+#### **Using uv (Recommended for Python)**
+```bash
+# Run with uv (no need to activate shell)
+uv run python app/main.py --dir "data/Dashrath Patel initial"
+
+# Or activate shell first
+uv shell
+python app/main.py --dir "data/Dashrath Patel initial"
 ```
 
 ### Processing Modes
@@ -456,10 +541,13 @@ app/output/
 ├── extracted_summary_mistral.json
 ├── extracted_summary_gemini.json
 ├── validation_reports.json
+├── policy_rule_report_openai_[filename].txt
 ├── policy_rule_report_openai_[filename].md
 ├── policy_rule_report_openai_[filename].html
+├── policy_rule_report_mistral_[filename].txt
 ├── policy_rule_report_mistral_[filename].md
 ├── policy_rule_report_mistral_[filename].html
+├── policy_rule_report_gemini_[filename].txt
 ├── policy_rule_report_gemini_[filename].md
 ├── policy_rule_report_gemini_[filename].html
 ├── accuracy_report_[filename].json
@@ -521,6 +609,11 @@ The system now extracts and validates three additional date fields:
 
 The application generates comprehensive tabular reports in multiple formats:
 
+#### **Text Reports** (`*.txt`)
+- Human-readable text format for easy reading
+- Includes summary statistics and detailed rule breakdown
+- Perfect for documentation and reporting
+
 #### **Markdown Reports** (`*.md`)
 - Professional table formatting for documentation
 - Easy to read in text editors and GitHub
@@ -535,7 +628,7 @@ The application generates comprehensive tabular reports in multiple formats:
 #### **Report Content**
 Each report includes:
 - **Summary Statistics**: Overall validity, risk level, total deductions
-- **Rule-by-Rule Analysis**: All 13 policy rule categories
+- **Rule-by-Rule Analysis**: All 11 policy rule categories
 - **Status Display**: PASS/FAIL with reasoning
 - **Deduction Amounts**: Automatic calculation and display
 - **Recommendations**: Actionable improvement suggestions
@@ -550,86 +643,40 @@ Risk Level: Low
 Total Deductions: ₹0.00
 
 Rule Statistics:
-• Total Rules Checked: 13
-• Rules Passed: 12 (92.3%)
-• Rules Failed: 1 (7.7%)
+• Total Rules Checked: 11
+• Rules Passed: 10 (90.9%)
+• Rules Failed: 1 (9.1%)
 
-| SECTION | RULE | CRITERIA | DECISION IF FAILS | DOCUMENT REQUIRED | STATUS | ACTUAL DECISION |
-|---------|------|----------|-------------------|-------------------|--------|-----------------|
-| Policy Validity | Inception Date | Policy must be active on admission date | Reject | Policy Document | PASS | PASS |
-| Policy Limits | Room Rent Eligibility | Room rent within entitled limit | Proportionate Deduction | Hospital Bill | FAIL | FAIL (₹5,000.00) |
-```
+DETAILED RULE RESULTS:
+--------------------------------------------------
 
-```json
-{
-  "extraction": {
-    "base_sum_assured": "500000",
-    "room_rent_capping": "at actuals",
-    "icu_capping": "100%",
-    "daily_cash_benefit": "800",
-    "co_payment": "20%",
-    "policy_start_date": "10/02/2025",
-    "policy_end_date": "09/02/2026",
-    "date_of_admission": "15/07/2025",
-    // ... all 29 policy fields + 3 new date fields
-  },
-  "validation": {
-    "overall_valid": true,
-    "overall_confidence": 0.85,
-    "field_results": {
-      "room_rent_capping": {
-        "is_valid": true,
-        "confidence_score": 0.9,
-        "validation_messages": ["Value indicates 'at actuals' (100%)"]
-      }
-    },
-    "cross_field_issues": [],
-    "recommendations": ["All fields validated successfully"]
-  },
-  "policy_rules": {
-    "overall_valid": true,
-    "overall_confidence": 0.92,
-    "risk_level": "Low",
-    "total_deductions": 0.0,
-    "rule_results": [
-      {
-        "rule_name": "Inception Date",
-        "decision": "PASS",
-        "reasoning": "Policy is active on admission date",
-        "deduction_amount": 0.0
-      }
-    ],
-    "recommendations": ["All policy rules validated successfully"]
-  },
-  "classification": {
-    "document_type": "health_insurance",
-    "category": "policy_document",
-    "confidence_score": 0.95,
-    "policy_number": "POL-2024-001",
-    "policy_version": "v1.0",
-    "recommendations": ["Document classified successfully"]
-  }
-    "total_deductions": 0.0,
-    "rule_results": {
-      "inception_date": {
-        "decision": "Pass",
-        "criteria_met": true,
-        "confidence_score": 0.95,
-        "details": "Policy is active on admission date"
-      }
-      // ... results for each of 11 business rules
-    },
-    "recommendations": ["Policy is valid for claims processing"]
-  },
-  "classification": {
-    "document_type": "health_insurance",
-    "category": "policy",
-    "confidence_score": 0.95,
-    "policy_number": "2024001234",
-    "policy_version": "1.2",
-    "recommendations": ["Use health insurance extraction pipeline"]
-  }
-}
+POLICY VALIDITY:
+---------------
+✅ Inception Date
+   Criteria: Policy must be active on date of admission
+   Decision: Pass
+   Reason: Policy active from 10/02/2025, admission on 15/07/2025
+   Document Required: Policy Document
+
+✅ Lapse Check
+   Criteria: Policy should not be in grace/lapse
+   Decision: Pass
+   Reason: Policy is active and not in grace/lapse period
+   Document Required: Payment Receipt
+
+POLICY LIMITS:
+-------------
+✅ Room Rent Eligibility
+   Criteria: Room rent within entitled limit
+   Decision: Pass
+   Reason: Room rent 5000 within limit 500000.0
+   Document Required: Hospital Bill
+
+❌ Non-Medical
+   Criteria: IRDA non-payables
+   Decision: Deduct (₹1,500.00)
+   Reason: Non-medical items totaling 1500 found
+   Document Required: Itemized Bill
 ```
 
 ### Console Output
@@ -663,6 +710,7 @@ The application provides real-time feedback:
 
 #### Extraction Results
 - **29 Policy Fields**: All extracted capping values
+- **3 Date Fields**: Policy start/end dates and admission date
 - **Null Values**: Fields not found in document
 - **Percentage Values**: Expressed as percentages or "at actuals"
 - **Amount Values**: Numerical amounts in currency
@@ -705,16 +753,31 @@ sudo systemctl start docker
 docker-compose --version
 ```
 
-#### 2. API Key Errors
+#### 2. Python Environment Issues
+```bash
+# Check Python version
+python --version
+
+# Check uv installation
+uv --version
+
+# Reinstall dependencies
+uv sync --reinstall
+```
+
+#### 3. API Key Errors
 ```bash
 # Check if API keys are set
 docker-compose --profile main run --rm medical-rag-pipeline env | grep API_KEY
+
+# Or for Python
+python -c "import os; print('API Keys:', [k for k in os.environ if 'API_KEY' in k])"
 
 # Verify API keys work
 curl -H "Authorization: Bearer $OPENAI_API_KEY" https://api.openai.com/v1/models
 ```
 
-#### 3. File Not Found Errors
+#### 4. File Not Found Errors
 ```bash
 # Check if documents exist
 ls -la data/
@@ -726,9 +789,9 @@ ls -la data/Master\ Policies/
 docker-compose config
 ```
 
-#### 4. Processing Failures
+#### 5. Processing Failures
 ```bash
-# Check container logs
+# Check container logs (Docker)
 docker-compose --profile main logs medical-rag-pipeline
 
 # Check specific error
@@ -739,21 +802,9 @@ docker-compose down
 docker-compose --profile main up --build
 ```
 
-#### 5. Memory Issues
-```bash
-# Check available memory
-free -h
-
-# Increase Docker memory limit
-# Edit docker-compose.yml and add:
-# deploy:
-#   resources:
-#     limits:
-#       memory: 8G
-```
-
 ### Debug Commands
 
+#### Docker Debug
 ```bash
 # Enter container for debugging
 docker-compose --profile main exec medical-rag-pipeline bash
@@ -768,9 +819,40 @@ print(f'Valid: {result.overall_valid}, Confidence: {result.overall_confidence}')
 
 # Check file structure
 docker-compose --profile main run --rm medical-rag-pipeline find /app/data -name "*.pdf" -type f
+```
+
+#### Python Debug
+```bash
+# Test individual components
+python -c "
+from app.validation import validate_extraction_result
+test_data = {'room_rent_capping': 'at actuals', 'base_sum_assured': '500000'}
+result = validate_extraction_result(test_data)
+print(f'Valid: {result.overall_valid}, Confidence: {result.overall_confidence}')
+"
+
+# Check file structure
+find data -name "*.pdf" -type f
 
 # Test OCR functionality
-docker-compose --profile main run --rm medical-rag-pipeline tesseract --version
+tesseract --version
+```
+
+### Performance Issues
+
+#### **Slow Processing**
+- **Large PDFs**: Use smaller files or increase Docker memory
+- **Multiple LLMs**: Disable unused LLM providers in configuration
+- **Network issues**: Check API connectivity and rate limits
+
+#### **Memory Issues**
+```bash
+# Increase Docker memory allocation
+docker-compose down
+docker system prune -a
+docker-compose --profile main up -d --build
+
+# For Python, increase system memory or use smaller files
 ```
 
 ### Performance Optimization
@@ -793,6 +875,9 @@ docker-compose -f docker-compose.gpu.yml up --build
 
 # Process single files instead of directories
 docker-compose --profile main run --rm medical-rag-pipeline python app/main.py --file "data/specific-file.pdf"
+
+# Or with Python
+python app/main.py --file "data/specific-file.pdf"
 ```
 
 ## Advanced Usage
@@ -801,14 +886,28 @@ docker-compose --profile main run --rm medical-rag-pipeline python app/main.py -
 
 Process multiple directories:
 
+#### **Docker Batch Processing**
 ```bash
 #!/bin/bash
 # batch_process.sh
-directories=("data/Daxa ben Initial" "data/Master Policies" "data/Other Directory")
+directories=("data/Dashrath Patel initial" "data/Master Policies" "data/Other Directory")
 
 for dir in "${directories[@]}"; do
     echo "Processing $dir..."
     docker-compose --profile main run --rm medical-rag-pipeline python app/main.py --dir "$dir"
+    echo "Completed $dir"
+done
+```
+
+#### **Python Batch Processing**
+```bash
+#!/bin/bash
+# batch_process_python.sh
+directories=("data/Dashrath Patel initial" "data/Master Policies" "data/Other Directory")
+
+for dir in "${directories[@]}"; do
+    echo "Processing $dir..."
+    python app/main.py --dir "$dir"
     echo "Completed $dir"
 done
 ```
@@ -822,72 +921,6 @@ You can modify the default behavior by editing configuration files:
 4. **Prompts**: Edit `app/prompts.py` for LLM prompts
 5. **Classification**: Edit `app/policy_classifier.py` for document classification
 6. **Accuracy Metrics**: Edit `app/accuracy_metrics.py` for accuracy tracking
-
-### Testing the System
-
-The application includes comprehensive test coverage with 12 test suites:
-
-#### **Running Tests**
-```bash
-# Run all tests
-./test_docker.sh test
-
-# Run specific test categories
-./test_docker.sh policy      # Policy extraction tests
-./test_docker.sh validation  # Data validation tests
-./test_docker.sh rules       # Policy rule validation tests
-./test_docker.sh report      # Tabular report generation tests
-./test_docker.sh accuracy    # Accuracy metrics tests
-./test_docker.sh integration # End-to-end integration tests
-```
-
-#### **Test Coverage**
-- **Core Infrastructure**: Directory scanning, text extraction, LLM integration
-- **Document Classification**: 8 document types, policy number extraction, routing
-- **Data Validation**: Range checks, format validation, cross-field consistency
-- **Policy Rules**: 11 business rules for claims processing
-- **Tabular Reports**: Markdown, HTML, and ASCII table generation
-- **Accuracy Metrics**: Model comparison, confidence analysis, recommendations
-- **Integration**: End-to-end pipeline testing, error handling, performance
-
-### Testing Tabular Report Generation
-
-Test the tabular report generation system:
-
-```bash
-# Test report generation directly
-python test_policy_report.py
-
-# Test in Docker environment
-./test_docker.sh report
-
-# Expected output files:
-# - output/sample_policy_rule_report.md (Markdown table)
-# - output/sample_policy_rule_report.html (HTML with styling)
-# - Console output (ASCII table)
-```
-
-#### **Report Test Features**
-- **Multiple Formats**: Test markdown, HTML, and ASCII table generation
-- **Rule Mapping**: Verify all 13 policy rules are mapped correctly
-- **Status Display**: Test PASS/FAIL status with color coding
-- **Deduction Calculation**: Test automatic deduction amount display
-- **Summary Statistics**: Test overall validity and risk assessment
-
-### Custom Validation Rules
-
-Modify validation rules in `app/validation.py`:
-
-```python
-# Add custom validation rule
-'custom_field': {
-    'type': 'percentage',
-    'min_value': 0,
-    'max_value': 100,
-    'required': False,
-    'description': 'Custom field validation'
-}
-```
 
 ### Integration with External Systems
 
@@ -912,116 +945,20 @@ docker-compose up -d
 # Set log level in .env
 LOG_LEVEL=DEBUG
 
-# View real-time logs
+# View real-time logs (Docker)
 docker-compose logs -f medical-rag-pipeline
+
+# View real-time logs (Python)
+python app/main.py --dir "data/Dashrath Patel initial" 2>&1 | tee processing.log
 ```
 
 #### Performance Monitoring
 ```bash
-# Monitor resource usage
+# Monitor resource usage (Docker)
 docker stats medical-rag-pipeline
 
 # Check processing times
 docker-compose --profile main logs medical-rag-pipeline | grep "processing_time"
-```
-
-## Troubleshooting
-
-### Common Issues and Solutions
-
-#### **Admission Date Not Extracted**
-
-**Problem**: Admission date shows as "null" even though it's present in the document.
-
-**Possible Causes**:
-1. **File not processed**: Onboarding form not included in processing
-2. **Date format not supported**: Date in unsupported format
-3. **Text extraction failed**: OCR or PDF text extraction issues
-
-**Solutions**:
-```bash
-# Check if onboarding form is being processed
-docker exec -it medical-doc-interactive python tests/test_admission_extraction_simple.py
-
-# Verify file filtering is working
-docker exec -it medical-doc-interactive python tests/test_document_discovery.py
-
-# Check text extraction from onboarding form
-docker exec -it medical-doc-interactive python tests/test_onboarding_only.py
-```
-
-**Expected Output**:
-```
-✅ Admission date found: 15/07/2025
-✅ Onboarding form found and processed!
-✅ Text extraction successful
-```
-
-#### **Date Format Issues**
-
-**Problem**: Dates not being recognized or validated.
-
-**Solutions**:
-```bash
-# Test date format validation
-docker exec -it medical-doc-interactive python tests/test_date_formats.py
-
-# Test single-digit date formats
-docker exec -it medical-doc-interactive python tests/test_single_digit_dates.py
-```
-
-**Supported Formats**:
-- ✅ DD/MM/YYYY: 15/07/2025
-- ✅ DD/MM/YY: 15/07/25
-- ✅ D/M/YY: 7/5/25
-- ✅ DD/M/YY: 17/2/25
-
-#### **Document Processing Issues**
-
-**Problem**: Not all relevant documents are being processed.
-
-**Check**:
-```bash
-# Verify document discovery
-docker exec -it medical-doc-interactive python tests/test_document_discovery.py
-
-# Expected output:
-✅ Found 5 relevant document(s):
-  - dashrath patel onboarding.pdf ✅
-  - dashrath patel policy.pdf ✅
-  - MASTER POLICY-HDFC GROUP HEALTH.pdf ✅
-```
-
-#### **LLM Extraction Issues**
-
-**Problem**: LLM not extracting dates correctly.
-
-**Solutions**:
-1. **Check API keys**: Ensure all LLM API keys are configured
-2. **Check prompts**: Verify prompts include date extraction instructions
-3. **Check logs**: Review LLM extraction logs for errors
-
-```bash
-# Check LLM configuration
-docker exec -it medical-doc-interactive python tests/test_llm_config.py
-
-# Test LLM extraction
-docker exec -it medical-doc-interactive python tests/test_admission_date_extraction.py
-```
-
-### Performance Issues
-
-#### **Slow Processing**
-- **Large PDFs**: Use smaller files or increase Docker memory
-- **Multiple LLMs**: Disable unused LLM providers in configuration
-- **Network issues**: Check API connectivity and rate limits
-
-#### **Memory Issues**
-```bash
-# Increase Docker memory allocation
-docker-compose down
-docker system prune -a
-docker-compose --profile main up -d --build
 ```
 
 ## Best Practices
@@ -1034,6 +971,16 @@ docker-compose --profile main up -d --build
 5. **Date Formats**: Use standard DD/MM/YYYY format for best recognition
 
 ### Processing Strategy
+1. **Start Small**: Test with single files before batch processing
+2. **Validate Results**: Check validation reports for accuracy
+3. **Monitor Resources**: Watch memory usage during large batches
+4. **Backup Data**: Keep original documents safe
+
+### Maintenance
+1. **Regular Updates**: Pull latest code changes
+2. **Clean Docker**: Remove unused images and containers
+3. **Monitor Logs**: Check for errors and warnings
+4. **Update API Keys**: Rotate API keys regularly
 
 ## Recent Updates and Improvements
 
@@ -1050,7 +997,10 @@ docker-compose --profile main up -d --build
 **Example Usage**:
 ```bash
 # Process patient directory with all document types
-docker exec -it medical-doc-interactive python -m app.main --file "data/Dashrath Patel initial/"
+docker-compose --profile main run --rm medical-rag-pipeline python app/main.py --dir "data/Dashrath Patel initial"
+
+# Or with Python
+python app/main.py --dir "data/Dashrath Patel initial"
 
 # Expected output includes:
 {
@@ -1091,22 +1041,6 @@ docker exec -it medical-doc-interactive python -m app.main --file "data/Dashrath
 - ✅ **Better Accuracy**: More context for LLM extraction
 - ✅ **Flexible Input**: Handles various document types and formats
 
-### 🧪 **Test Organization**
-
-**New Test Structure**:
-- ✅ **Organized Tests**: All tests moved to `tests/` directory
-- ✅ **Categorized Tests**: 6 categories with clear purposes
-- ✅ **Comprehensive Documentation**: Detailed test descriptions and usage
-- ✅ **Easy Execution**: Simple commands for running specific tests
-
-**Test Categories**:
-- 🔍 **Admission Date Extraction Tests** (4 files)
-- 📅 **Date Format Tests** (4 files)
-- 📄 **Document Processing Tests** (3 files)
-- 🧪 **Core Infrastructure Tests** (6 files)
-- 🎯 **Feature-Specific Tests** (6 files)
-- 🐳 **Integration Tests** (2 files)
-
 ### 🔧 **Policy Rules System Fix (Latest)**
 
 **Section Correction**:
@@ -1141,18 +1075,6 @@ docker exec -it medical-doc-interactive python -m app.main --file "data/Dashrath
 - ✅ **Waiting Periods**: Correctly identifies cardiac condition requires 180 days (policy only 155 days old)
 - ✅ **System Health**: All validation logic working as expected
 
-### Processing Strategy
-1. **Start Small**: Test with single files before batch processing
-2. **Validate Results**: Check validation reports for accuracy
-3. **Monitor Resources**: Watch memory usage during large batches
-4. **Backup Data**: Keep original documents safe
-
-### Maintenance
-1. **Regular Updates**: Pull latest code changes
-2. **Clean Docker**: Remove unused images and containers
-3. **Monitor Logs**: Check for errors and warnings
-4. **Update API Keys**: Rotate API keys regularly
-
 ## Support
 
 ### Getting Help
@@ -1163,6 +1085,7 @@ docker exec -it medical-doc-interactive python -m app.main --file "data/Dashrath
 
 ### Useful Commands Reference
 
+#### **Docker Commands**
 ```bash
 # Quick status check
 docker-compose ps
@@ -1184,4 +1107,26 @@ git pull
 ./start-docker.sh --main --build
 ```
 
-This user guide provides everything needed to successfully run and manage the Medical Document Extractor application! 
+#### **Python Commands**
+```bash
+# Quick status check
+python --version
+uv --version
+
+# View logs
+python app/main.py --dir "data/Dashrath Patel initial" 2>&1 | tee processing.log
+
+# Restart application
+uv sync
+python app/main.py --dir "data/Dashrath Patel initial"
+
+# Clean up
+rm -rf .venv
+uv sync
+
+# Update application
+git pull
+uv sync
+```
+
+This user guide provides everything needed to successfully run and manage the Medical Document Extractor application using both Docker and Python/uv! 

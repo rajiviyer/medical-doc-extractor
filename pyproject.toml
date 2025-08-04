@@ -1,0 +1,30 @@
+[project]
+name = "medical-doc-extractor"
+version = "0.1.0"
+description = "Medical document extraction and policy validation system"
+authors = [
+    {name = "Medical Doc Extractor Team"}
+]
+dependencies = [
+    "PyPDF2",
+    "pdfplumber", 
+    "pytesseract",
+    "pdf2image",
+    "Pillow",
+    "python-dotenv",
+    "openai",
+    "mistralai",
+    "google-genai",
+    "pyyaml",
+]
+requires-python = ">=3.8"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest",
+    "pytest-cov",
+] 
