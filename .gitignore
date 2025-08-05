@@ -1,5 +1,4 @@
 /misc_code/*
 /output/
 *.env
-/data/
 __pycache__/
